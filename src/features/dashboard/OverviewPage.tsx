@@ -207,15 +207,15 @@ export function OverviewPage() {
                   <button
                     key={ticket.id}
                     type="button"
-                    className="flex w-full flex-col gap-1 border-0 border-s-3 border-transparent bg-transparent px-4 py-3 text-start transition-colors hover:bg-fill focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+                    className="flex min-w-0 w-full flex-col gap-1 border-0 border-s-3 border-transparent bg-transparent px-4 py-3 text-start transition-colors hover:bg-fill focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
                     style={{ borderInlineStartColor: STATUS_STROKE[ticket.status] }}
                     onClick={() => openTickets({ q: ref(ticket.number) })}
                   >
                     <DueLabel ticket={ticket} />
-                    <Typography.Text strong ellipsis className="block">
+                    <Typography.Text strong className="block whitespace-normal break-words">
                       {ticket.subject}
                     </Typography.Text>
-                    <Typography.Text type="secondary" className="text-[12.5px]">
+                    <Typography.Text type="secondary" className="block whitespace-normal break-words text-[12.5px]">
                       <TicketRef number={ticket.number} />
                       <span aria-hidden="true"> · </span>
                       {ticket.customer.company}

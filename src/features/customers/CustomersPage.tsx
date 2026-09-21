@@ -27,8 +27,8 @@ export function CustomersPage() {
           </Button>
         }
       />
-      <Card>
-        <Flex gap={12} wrap align="center" className="mb-4">
+      <Card classNames={{ body: 'p-3 sm:p-6' }}>
+        <Flex gap={8} wrap align="center" className="mb-4">
           <Input
             allowClear
             prefix={<SearchOutlined />}
@@ -36,7 +36,7 @@ export function CustomersPage() {
             aria-label="Search customers"
             value={text}
             onChange={(event) => setText(event.target.value)}
-            className="max-w-[380px] flex-[1_1_260px]"
+            className="w-full max-w-[380px] flex-[1_1_260px] sm:w-auto"
           />
           {hasFilters && (
             <Button type="link" onClick={() => dispatch(filtersCleared())}>

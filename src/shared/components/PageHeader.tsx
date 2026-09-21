@@ -20,7 +20,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
           </Typography.Text>
         )}
       </div>
-      {actions && <Flex gap={8} wrap>{actions}</Flex>}
+      {actions && <Flex gap={8} wrap className="w-full min-[576px]:w-auto">{actions}</Flex>}
     </Flex>
   )
 }

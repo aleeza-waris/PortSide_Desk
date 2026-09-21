@@ -30,10 +30,10 @@ export function TicketFilters() {
 
   return (
     <div className="mb-4">
-      <Flex gap={12} wrap align="center">
+      <Flex gap={8} wrap align="center">
         <Input.Search
           allowClear
-          className="min-w-[200px] max-w-[380px] flex-[1_1_200px]"
+          className="w-full min-w-0 max-w-[380px] flex-[1_1_200px] sm:w-auto"
           placeholder="Search tickets"
           aria-label="Filter tickets by text"
           value={text}
@@ -43,7 +43,7 @@ export function TicketFilters() {
         <Select
           mode="multiple"
           allowClear
-          className="w-[150px]"
+          className="w-full sm:w-[150px]"
           placeholder="Status"
           aria-label="Filter by status"
           maxTagCount="responsive"
@@ -54,7 +54,7 @@ export function TicketFilters() {
         <Select
           mode="multiple"
           allowClear
-          className="w-[150px]"
+          className="w-full sm:w-[150px]"
           placeholder="Priority"
           aria-label="Filter by priority"
           maxTagCount="responsive"
@@ -65,7 +65,7 @@ export function TicketFilters() {
         <AgentSelect
           includeUnassigned
           allowClear
-          className="w-[150px]"
+          className="w-full sm:w-[150px]"
           placeholder="Assignee"
           aria-label="Filter by assignee"
           value={params.assigneeId ?? undefined}
@@ -73,7 +73,7 @@ export function TicketFilters() {
         />
         <DatePicker.RangePicker
           allowClear
-          className="w-[250px] max-w-full"
+          className="w-full max-w-full sm:w-[250px]"
           presets={presets}
           placeholder={['Created from', 'to']}
           value={params.createdRange ? [dayjs(params.createdRange[0]), dayjs(params.createdRange[1])] : null}

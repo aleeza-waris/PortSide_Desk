@@ -70,7 +70,7 @@ export function AppLayout() {
           collapsed={isPhoneScreen ? !drawerOpen : collapsed}
           onToggleNav={toggleNavigation}
         />
-        <Layout.Content className="p-6 max-[991px]:p-4">
+        <Layout.Content className="p-6 max-[991px]:p-4 max-[575px]:p-3">
           <div className="mx-auto w-full max-w-[1360px]">
             <Outlet />
           </div>

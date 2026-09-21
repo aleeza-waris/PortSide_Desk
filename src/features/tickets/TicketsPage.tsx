@@ -27,7 +27,7 @@ export function TicketsPage() {
           </Button>
         }
       />
-      <Card>
+      <Card classNames={{ body: 'p-3 sm:p-6' }}>
         <TicketFilters />
         <BulkBar />
         <TicketTable onEdit={openEdit} onCreate={openCreate} />

@@ -28,10 +28,14 @@ export function HeaderBar({ collapsed, onToggleNav }: HeaderBarProps) {
   const themeMode = useAppSelector(selectThemeMode)
   const { signOut, resetDemoData } = useSession()
 
-  /** Global search hands its query to the Tickets page through Redux. */
-  const searchTickets = (query: string) => {
-    dispatch(filtersReplaced({ q: query.trim() }))
+  /** Global search sends its text to the Tickets page through Redux. */
+  const searchTickets = (searchText: string) => {
+    dispatch(filtersReplaced({ q: searchText.trim() }))
     navigate('/tickets')
+  }
+
+  const toggleTheme = (isDark: boolean) => {
+    dispatch(themeModeChanged(isDark ? 'dark' : 'light'))
   }
 
   return (
@@ -57,7 +61,7 @@ export function HeaderBar({ collapsed, onToggleNav }: HeaderBarProps) {
       <Flex align="center" gap={16}>
         <Switch
           checked={themeMode === 'dark'}
-          onChange={(checked) => dispatch(themeModeChanged(checked ? 'dark' : 'light'))}
+          onChange={toggleTheme}
           checkedChildren={<MoonOutlined />}
           unCheckedChildren={<SunOutlined />}
           aria-label="Dark mode"

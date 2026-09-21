@@ -3,7 +3,7 @@
  * validates, filters/sorts/paginates on the "server", and answers with the
  * status codes the UI has to cope with (401, 404, 409, 422).
  */
-import { delay, http as rest, HttpResponse } from 'msw'
+import { delay, http, HttpResponse } from 'msw'
 import {
   CUSTOMER_PLANS,
   CUSTOMER_STATUSES,
@@ -32,7 +32,7 @@ import type { Paged } from '@/shared/types'
 import { commit, getDb, newId, nextTicketNumber, resetDb } from './db'
 import { DEMO_PASSWORD } from './seed'
 
-// ───────────────────────────── helpers ─────────────────────────────
+// These helpers are shared by the endpoint definitions at the bottom of this file.
 
 const latency = () => delay(import.meta.env.MODE === 'test' ? 0 : 160 + Math.random() * 240)
 
@@ -79,7 +79,7 @@ const uniqueStrings = (values: unknown): string[] =>
     ? [...new Set(values.map((value) => String(value).trim().toLowerCase()).filter(Boolean))].slice(0, 8)
     : []
 
-// ───────────────────────────── tickets ─────────────────────────────
+// A ticket in the database only has IDs. A ticket table row also includes customer and agent details.
 
 const PRIORITY_RANK = { low: 0, medium: 1, high: 2, urgent: 3 } as const
 const STATUS_RANK = { open: 0, pending: 1, resolved: 2, closed: 3 } as const
@@ -191,7 +191,7 @@ function setStatus(ticket: Ticket, status: TicketStatus) {
   }
 }
 
-// ──────────────────────────── customers ────────────────────────────
+// Customer endpoints use these helpers for validation and open-ticket rules.
 
 const PLAN_RANK = { standard: 0, priority: 1, enterprise: 2 } as const
 
@@ -240,11 +240,11 @@ function validateCustomer(body: unknown, ignoreId?: string): Validated<CustomerI
   }
 }
 
-// ───────────────────────────── handlers ────────────────────────────
+// Each item below is one endpoint in the fake API. The path matches the path used by the feature's api.ts.
 
 export const handlers = [
   // Auth
-  rest.post('/api/auth/login', async ({ request }) => {
+  http.post('/api/auth/login', async ({ request }) => {
     await latency()
     const { email, password } = (await request.json().catch(() => ({}))) as Partial<LoginRequest>
     const agent = getDb().agents.find((item) => item.email === String(email ?? '').trim().toLowerCase())
@@ -256,13 +256,13 @@ export const handlers = [
     return HttpResponse.json(response)
   }),
 
-  rest.post('/api/dev/reset', secured(() => {
+  http.post('/api/dev/reset', secured(() => {
     resetDb()
     return noContent()
   })),
 
   // Dashboard
-  rest.get('/api/dashboard', secured(() => {
+  http.get('/api/dashboard', secured(() => {
     const { tickets } = getDb()
     const now = Date.now()
     const counts: Record<TicketStatus, number> = { open: 0, pending: 0, resolved: 0, closed: 0 }
@@ -288,12 +288,12 @@ export const handlers = [
   })),
 
   // Tickets
-  rest.get('/api/tickets', secured(({ request }) => {
+  http.get('/api/tickets', secured(({ request }) => {
     const sp = new URL(request.url).searchParams
     return HttpResponse.json(paginate(listTickets(sp), sp))
   })),
 
-  rest.post('/api/tickets/bulk', secured(async ({ request }) => {
+  http.post('/api/tickets/bulk', secured(async ({ request }) => {
     const body = (await request.json()) as BulkTicketAction
     const ids = new Set(body.ids ?? [])
     const db = getDb()
@@ -319,7 +319,7 @@ export const handlers = [
     return fail(422, 'That bulk action is not supported.')
   })),
 
-  rest.post('/api/tickets', secured(async ({ request }) => {
+  http.post('/api/tickets', secured(async ({ request }) => {
     const result = validateTicket(await request.json().catch(() => null))
     if (!result.ok) return fail(422, result.message)
 
@@ -339,12 +339,12 @@ export const handlers = [
     return HttpResponse.json(toRow(ticket), { status: 201 })
   })),
 
-  rest.get('/api/tickets/:id', secured(({ params }) => {
+  http.get('/api/tickets/:id', secured(({ params }) => {
     const ticket = getDb().tickets.find((item) => item.id === params.id)
     return ticket ? HttpResponse.json(toRow(ticket)) : fail(404, 'This ticket no longer exists.')
   })),
 
-  rest.put('/api/tickets/:id', secured(async ({ request, params }) => {
+  http.put('/api/tickets/:id', secured(async ({ request, params }) => {
     const ticket = getDb().tickets.find((item) => item.id === params.id)
     if (!ticket) return fail(404, 'This ticket no longer exists. It may have been deleted by someone else.')
     const result = validateTicket(await request.json().catch(() => null))
@@ -358,7 +358,7 @@ export const handlers = [
     return HttpResponse.json(toRow(ticket))
   })),
 
-  rest.delete('/api/tickets/:id', secured(({ params }) => {
+  http.delete('/api/tickets/:id', secured(({ params }) => {
     const db = getDb()
     const index = db.tickets.findIndex((item) => item.id === params.id)
     if (index === -1) return fail(404, 'This ticket was already deleted.')
@@ -368,7 +368,7 @@ export const handlers = [
   })),
 
   // Customers
-  rest.get('/api/customers/options', secured(({ request }) => {
+  http.get('/api/customers/options', secured(({ request }) => {
     const sp = new URL(request.url).searchParams
     const q = (sp.get('q') ?? '').trim().toLowerCase()
     const options: CustomerOption[] = getDb()
@@ -379,7 +379,7 @@ export const handlers = [
     return HttpResponse.json(options)
   })),
 
-  rest.get('/api/customers', secured(({ request }) => {
+  http.get('/api/customers', secured(({ request }) => {
     const sp = new URL(request.url).searchParams
     const q = (sp.get('q') ?? '').trim().toLowerCase()
     const plans = sp.getAll('plan')
@@ -406,7 +406,7 @@ export const handlers = [
     return HttpResponse.json(paginate(rows, sp))
   })),
 
-  rest.post('/api/customers', secured(async ({ request }) => {
+  http.post('/api/customers', secured(async ({ request }) => {
     const result = validateCustomer(await request.json().catch(() => null))
     if (!result.ok) return fail(422, result.message)
     const customer: Customer = { ...result.value, id: newId('cus'), lastContactAt: null }
@@ -415,7 +415,7 @@ export const handlers = [
     return HttpResponse.json({ ...customer, openTickets: 0 } satisfies CustomerRow, { status: 201 })
   })),
 
-  rest.put('/api/customers/:id', secured(async ({ request, params }) => {
+  http.put('/api/customers/:id', secured(async ({ request, params }) => {
     const customer = getDb().customers.find((item) => item.id === params.id)
     if (!customer) return fail(404, 'This customer no longer exists.')
     const result = validateCustomer(await request.json().catch(() => null), customer.id)
@@ -425,7 +425,7 @@ export const handlers = [
     return HttpResponse.json({ ...customer, openTickets: openTicketCounts().get(customer.id) ?? 0 } satisfies CustomerRow)
   })),
 
-  rest.delete('/api/customers/:id', secured(({ params }) => {
+  http.delete('/api/customers/:id', secured(({ params }) => {
     const db = getDb()
     const customer = db.customers.find((item) => item.id === params.id)
     if (!customer) return fail(404, 'This customer was already deleted.')
@@ -441,7 +441,7 @@ export const handlers = [
   })),
 
   // Team
-  rest.get('/api/agents', secured(() => {
+  http.get('/api/agents', secured(() => {
     const { agents, tickets } = getDb()
     const weekAgo = Date.now() - 7 * 86_400_000
     const rows: AgentRow[] = agents.map((agent) => {
@@ -457,7 +457,7 @@ export const handlers = [
     return HttpResponse.json(rows)
   })),
 
-  rest.patch('/api/agents/:id', secured(async ({ request, params }) => {
+  http.patch('/api/agents/:id', secured(async ({ request, params }) => {
     const agent = getDb().agents.find((item) => item.id === params.id)
     if (!agent) return fail(404, 'This agent no longer exists.')
     const body = (await request.json().catch(() => ({}))) as Partial<Pick<Agent, 'available'>>
@@ -467,7 +467,7 @@ export const handlers = [
   })),
 
   // Analytics
-  rest.get('/api/analytics', secured(({ request }) => {
+  http.get('/api/analytics', secured(({ request }) => {
     const sp = new URL(request.url).searchParams
     const end = (sp.get('to') ? dayjs(sp.get('to')) : dayjs()).endOf('day')
     let start = (sp.get('from') ? dayjs(sp.get('from')) : end.subtract(29, 'day')).startOf('day')

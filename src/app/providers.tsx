@@ -37,14 +37,14 @@ const prefersReducedMotion = () =>
 
 function ThemedApp({ children }: { children: ReactNode }) {
   const mode = useAppSelector(selectThemeMode)
-  const config = useMemo(() => {
+  const themeConfig = useMemo(() => {
     const theme = buildTheme(mode)
     return prefersReducedMotion() ? { ...theme, token: { ...theme.token, motion: false } } : theme
   }, [mode])
   return (
     // `layer` puts antd's styles in `@layer antd`, below Tailwind's utilities (see tailwind.css).
     <StyleProvider layer>
-      <ConfigProvider theme={config} locale={enUS}>
+      <ConfigProvider theme={themeConfig} locale={enUS}>
         <AntdApp notification={{ maxCount: 3 }}>
           <ThemeSync />
           <SessionWatcher />
@@ -62,6 +62,7 @@ interface AppProvidersProps {
 }
 
 export function AppProviders({ store, queryClient, children }: AppProvidersProps) {
+  // Each provider makes one shared service available to everything inside it.
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>

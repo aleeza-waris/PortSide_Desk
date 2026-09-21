@@ -10,7 +10,7 @@ import { useAnalytics } from './api'
 import { rangeChanged, selectAnalyticsRange } from './analyticsSlice'
 import { AgentChart, ChannelChart, PriorityChart, VolumeChart } from './components/Charts'
 
-export function Component() {
+export function AnalyticsPage() {
   const dispatch = useAppDispatch()
   const range = useAppSelector(selectAnalyticsRange)
   const { data, isLoading, isError, error, refetch } = useAnalytics(range)

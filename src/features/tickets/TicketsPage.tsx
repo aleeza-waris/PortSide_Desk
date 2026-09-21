@@ -8,7 +8,7 @@ import { TicketFilters } from './components/TicketFilters'
 import { TicketTable } from './components/TicketTable'
 import type { TicketRow } from './types'
 
-export function Component() {
+export function TicketsPage() {
   const [drawer, setDrawer] = useState<{ open: boolean; ticket: TicketRow | null }>({ open: false, ticket: null })
 
   const openCreate = () => setDrawer({ open: true, ticket: null })

@@ -8,7 +8,7 @@ import type { AgentRow } from './types'
 /** Open tickets one person can carry before the bar turns red. */
 const CAPACITY = 12
 
-export function Component() {
+export function TeamPage() {
   const { data, isLoading, isError, error, refetch } = useAgents()
   const setAvailability = useSetAvailability()
 

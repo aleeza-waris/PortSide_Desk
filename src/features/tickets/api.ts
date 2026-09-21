@@ -11,28 +11,29 @@ export const ticketKeys = {
 }
 
 /** Redux holds a friendly shape (a date range tuple, a boolean); the API wants flat query params. */
-const toApiParams = (p: TicketListParams) => ({
-  page: p.page,
-  pageSize: p.pageSize,
-  sortField: p.sortField,
-  sortOrder: p.sortOrder,
-  q: p.q,
-  status: p.status,
-  priority: p.priority,
-  assigneeId: p.assigneeId,
-  customerId: p.customerId,
-  createdFrom: p.createdRange?.[0],
-  createdTo: p.createdRange?.[1],
-  overdue: p.overdue ? true : undefined,
+const toApiParams = (params: TicketListParams) => ({
+  page: params.page,
+  pageSize: params.pageSize,
+  sortField: params.sortField,
+  sortOrder: params.sortOrder,
+  q: params.q,
+  status: params.status,
+  priority: params.priority,
+  assigneeId: params.assigneeId,
+  customerId: params.customerId,
+  createdFrom: params.createdRange?.[0],
+  createdTo: params.createdRange?.[1],
+  overdue: params.overdue ? true : undefined,
 })
 
-export const useTickets = (params: TicketListParams) =>
-  useQuery({
+export function useTickets(params: TicketListParams) {
+  return useQuery({
     queryKey: ticketKeys.list(params),
     queryFn: ({ signal }) => http.get<Paged<TicketRow>>('/tickets', { params: toApiParams(params), signal }),
     // Keep showing the previous page while the next one loads: no flash of an empty table.
     placeholderData: keepPreviousData,
   })
+}
 
 export function useCreateTicket() {
   const queryClient = useQueryClient()

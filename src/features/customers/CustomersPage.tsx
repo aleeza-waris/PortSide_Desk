@@ -9,7 +9,7 @@ import { CustomerTable } from './components/CustomerTable'
 import { filtersCleared, searchChanged, selectCustomerParams } from './customersSlice'
 import type { CustomerRow } from './types'
 
-export function Component() {
+export function CustomersPage() {
   const dispatch = useAppDispatch()
   const params = useAppSelector(selectCustomerParams)
   const [text, setText] = useDebouncedInput(params.q, (q) => dispatch(searchChanged(q)))

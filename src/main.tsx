@@ -7,15 +7,16 @@ import './app/tailwind.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import { startMockApi } from '@/mocks/browser'
 import { createQueryClient } from './app/queryClient'
 import { AppProviders } from './app/providers'
-import { routes } from './app/routes'
+import { AppRoutes } from './app/routes'
 import { createAppStore } from './app/store'
 
 async function bootstrap() {
-  const root = createRoot(document.getElementById('root')!)
+  const rootElement = document.getElementById('root')!
+  const root = createRoot(rootElement)
 
   try {
     // Everything under /api is answered in the browser by Mock Service Worker.
@@ -31,14 +32,16 @@ async function bootstrap() {
     return
   }
 
-  const store = createAppStore()
+  // Create these once so every component uses the same store and server-data cache.
+  const appStore = createAppStore()
   const queryClient = createQueryClient()
-  const router = createBrowserRouter(routes, { basename: import.meta.env.BASE_URL })
 
   root.render(
     <StrictMode>
-      <AppProviders store={store} queryClient={queryClient}>
-        <RouterProvider router={router} />
+      <AppProviders store={appStore} queryClient={queryClient}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+          <AppRoutes />
+        </BrowserRouter>
       </AppProviders>
     </StrictMode>,
   )

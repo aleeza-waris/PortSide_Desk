@@ -5,6 +5,10 @@ analytics and team roster. Built with **Ant Design 6**, **Tailwind CSS 4**, **Re
 **TanStack Query**, **React Router** and **TypeScript**, running against a **mock REST API** (Mock Service Worker) that
 lives entirely in the browser.
 
+The code is organised by feature. Each feature keeps its page, API hooks, state, types, and smaller
+components together. The mock backend is in `src/mocks`: `seed.ts` creates the starting data,
+`db.ts` stores the current data, and `handlers.ts` responds to the app's `/api` requests.
+
 ```bash
 npm install
 npm run dev          # http://localhost:5173
@@ -18,13 +22,13 @@ npm run dev          # http://localhost:5173
 
 ## What it does
 
-| Section | What you can do |
-| --- | --- |
-| **Overview** | KPI tiles (open, overdue, unassigned, last 7 days) and a "next due" board. Every tile and row is a doorway into Tickets with a filter already applied. |
-| **Tickets** | Server-side sort, filter (text, status, priority, assignee, created-date range, overdue only) and pagination. Create/edit in a **drawer**. Multi-select with bulk *mark resolved* and bulk delete. |
+| Section       | What you can do                                                                                                                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Overview**  | KPI tiles (open, overdue, unassigned, last 7 days) and a "next due" board. Every tile and row is a doorway into Tickets with a filter already applied.                                                                 |
+| **Tickets**   | Server-side sort, filter (text, status, priority, assignee, created-date range, overdue only) and pagination. Create/edit in a **drawer**. Multi-select with bulk _mark resolved_ and bulk delete.                     |
 | **Customers** | Sort, search and **column filters** (plan, status). Create/edit in a **modal**. Deleting a customer with open tickets is refused with the server's message. "Open tickets" links to Tickets filtered to that customer. |
-| **Analytics** | Date-range picker with presets; KPIs plus four charts (created vs resolved per day, channel mix, priority mix, resolved per agent). Lazy-loaded, so the chart library is only downloaded here. |
-| **Team** | Workload bars, weekly throughput, customer ratings, and an availability switch that writes to the API. |
+| **Analytics** | Date-range picker with presets; KPIs plus four charts (created vs resolved per day, channel mix, priority mix, resolved per agent).                                                                                    |
+| **Team**      | Workload bars, weekly throughput, customer ratings, and an availability switch that writes to the API.                                                                                                                 |
 
 Also: protected routes behind a mock login (returns you to where you were headed), light/dark mode,
 toasts for every create/save/delete, an "unsaved changes" guard on the drawer and modal, and a layout
@@ -51,12 +55,26 @@ src/
 ```
 
 Features talk to each other only through a small `index.ts` (for example `features/team/index.ts`
-exports the agent picker). Pages are never exported from a barrel, so they stay lazily loadable.
+exports the agent picker). Pages are not exported from a barrel, so each page's ownership stays easy to find.
+Page components use descriptive names such as `TicketsPage` and `TeamPage`, so route imports explain
+which screen they render.
+
+### How routing works
+
+Routing lives in `src/app/routes.tsx`. Read the `Routes` and `Route` components from the outside in:
+
+1. The first `Route` contains pages anyone can open, currently only `/login`.
+2. `RequireAuth` checks whether the user is signed in. Its `Outlet` renders the matching child route.
+3. `AppLayout` adds the sidebar and header. Its `Outlet` renders the selected page.
+4. The nested `Route` components map URLs such as `tickets` and `customers` to page components.
+
+The route file uses `BrowserRouter`, `Routes`, and `Route` because that is easier to follow while learning.
+The tradeoff is that all page code is included in the first JavaScript bundle.
 
 ## Decisions worth knowing about
 
 - **Styling is Tailwind utility classes**, with no CSS modules. The only stylesheet is `src/app/tailwind.css`
-  (Tailwind import, the two brand colours, fonts, one keyframe). antd is layered *under* Tailwind's
+  (Tailwind import, the two brand colours, fonts, one keyframe). antd is layered _under_ Tailwind's
   utilities (`@layer theme, base, antd, components, utilities`, plus antd's `<StyleProvider layer>`), so
   Tailwind's reset never fights antd and a utility such as `mb-4` reliably overrides an antd default without
   `!important`. The layer order is also declared in `index.html`, so it holds whichever stylesheet loads first.
@@ -64,7 +82,7 @@ exports the agent picker). Pages are never exported from a barrel, so they stay 
   so utilities follow light/dark mode. The only inline `style` props left are per-agent avatar colours and the
   chart legend colour, which are computed at runtime.
 - **Server state vs client state.** TanStack Query owns everything that comes from the API. Redux owns
-  what the *user* is doing: who is signed in, each page's filters, sort and paging, and the ticket selection.
+  what the _user_ is doing: who is signed in, each page's filters, sort and paging, and the ticket selection.
   That split is why filters survive navigation and why other pages can deep-link into a filtered table by
   dispatching one action.
 - **Filtering happens on the "server".** Filter, sort and paging go to the API as query params, and the
@@ -82,13 +100,13 @@ exports the agent picker). Pages are never exported from a barrel, so they stay 
 
 ## Scripts
 
-| | |
-| --- | --- |
-| `npm run dev` | Vite dev server |
-| `npm run build` | Type-check, then production build |
-| `npm run preview` | Serve the production build |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Vitest: API contract tests and UI flow tests (29 tests) |
+|                     |                                                         |
+| ------------------- | ------------------------------------------------------- |
+| `npm run dev`       | Vite dev server                                         |
+| `npm run build`     | Type-check, then production build                       |
+| `npm run preview`   | Serve the production build                              |
+| `npm run typecheck` | `tsc --noEmit`                                          |
+| `npm test`          | Vitest: API contract tests and UI flow tests (29 tests) |
 
 ## Testing
 
@@ -102,7 +120,7 @@ exports the agent picker). Pages are never exported from a barrel, so they stay 
 ## Known limitations
 
 - **Bundle size.** antd is the bulk of the download (about 1.2 MB, roughly 400 KB gzipped) and MSW ships in
-  the production bundle because the mock API *is* the backend for this demo. A real deployment would
+  the production bundle because the mock API _is_ the backend for this demo. A real deployment would
   drop MSW and point `src/shared/lib/http.ts` at a real API.
 - **Auth is a mock.** The token is `mock-<agentId>`; nothing here is secure.
 - **Tablet tables scroll sideways.** Below about 1100px the ticket and customer tables scroll horizontally

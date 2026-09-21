@@ -9,37 +9,45 @@ import { selectionCleared, selectSelectedTicketIds } from '../ticketsSlice'
 /** Appears when rows are selected. The selection lives in Redux, so it survives paging. */
 export function BulkBar() {
   const dispatch = useAppDispatch()
-  const ids = useAppSelector(selectSelectedTicketIds)
-  const bulk = useBulkTickets()
+  const selectedTicketIds = useAppSelector(selectSelectedTicketIds)
+  const bulkTicketMutation = useBulkTickets()
 
-  if (ids.length === 0) return null
+  if (selectedTicketIds.length === 0) return null
 
-  const run = (payload: BulkTicketAction) =>
-    bulk.mutate(payload, { onSuccess: () => dispatch(selectionCleared()) })
+  const clearSelection = () => dispatch(selectionCleared())
+
+  const runBulkAction = (action: BulkTicketAction) => {
+    bulkTicketMutation.mutate(action, { onSuccess: clearSelection })
+  }
+
+  const isMarkingResolved =
+    bulkTicketMutation.isPending && bulkTicketMutation.variables?.action === 'setStatus'
+  const isDeleting = bulkTicketMutation.isPending && bulkTicketMutation.variables?.action === 'delete'
+  const selectedTicketLabel = pluralize(selectedTicketIds.length, 'ticket')
 
   return (
     <Flex className="mb-3 rounded-md border border-brand-line bg-brand-bg px-3.5 py-2.5" align="center" gap={12} wrap role="region" aria-label="Bulk actions">
-      <Typography.Text strong>{pluralize(ids.length, 'ticket')} selected</Typography.Text>
+      <Typography.Text strong>{selectedTicketLabel} selected</Typography.Text>
       <Button
         icon={<CheckOutlined />}
-        loading={bulk.isPending && bulk.variables?.action === 'setStatus'}
-        onClick={() => run({ action: 'setStatus', ids, status: 'resolved' })}
+        loading={isMarkingResolved}
+        onClick={() => runBulkAction({ action: 'setStatus', ids: selectedTicketIds, status: 'resolved' })}
       >
         Mark resolved
       </Button>
       <Popconfirm
-        title={`Delete ${pluralize(ids.length, 'ticket')}?`}
+        title={`Delete ${selectedTicketLabel}?`}
         description="They are removed for everyone. This cannot be undone."
-        okText={ids.length === 1 ? 'Delete ticket' : 'Delete tickets'}
+        okText={selectedTicketIds.length === 1 ? 'Delete ticket' : 'Delete tickets'}
         okButtonProps={{ danger: true }}
         cancelText="Keep them"
-        onConfirm={() => run({ action: 'delete', ids })}
+        onConfirm={() => runBulkAction({ action: 'delete', ids: selectedTicketIds })}
       >
-        <Button danger icon={<DeleteOutlined />} loading={bulk.isPending && bulk.variables?.action === 'delete'}>
+        <Button danger icon={<DeleteOutlined />} loading={isDeleting}>
           Delete
         </Button>
       </Popconfirm>
-      <Button type="link" onClick={() => dispatch(selectionCleared())}>
+      <Button type="link" onClick={clearSelection}>
         Clear selection
       </Button>
     </Flex>

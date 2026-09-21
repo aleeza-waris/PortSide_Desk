@@ -12,7 +12,7 @@ interface LocationState {
   from?: { pathname: string; search?: string }
 }
 
-export function Component() {
+export function LoginPage() {
   const dispatch = useAppDispatch()
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
   const location = useLocation()

@@ -4,6 +4,7 @@ const STORAGE_KEY = 'portside.mockdb.v1'
 
 let state: DbState | null = null
 
+// Load once per browser session. Handlers work with this object, then commit changes.
 function readStored(): DbState | null {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)

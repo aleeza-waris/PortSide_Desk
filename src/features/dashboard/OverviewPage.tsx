@@ -49,7 +49,7 @@ function greeting() {
   return hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 }
 
-export function Component() {
+export function OverviewPage() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const user = useAppSelector(selectCurrentUser)

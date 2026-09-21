@@ -201,9 +201,9 @@ export function CustomerTable({ onEdit, onCreate }: CustomerTableProps) {
         {isFetching ? (
           <Typography.Text type="secondary" className="block px-4 py-6 text-center">Loading customers...</Typography.Text>
         ) : data?.items.length ? (
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             {data.items.map((customer) => (
-              <article key={customer.id} className="rounded-md border border-line p-3">
+              <article key={customer.id} className="box-border min-w-0 max-w-full rounded-md border border-line p-3">
                 <div className="min-w-0">
                   <ActionLink onActivate={() => onEdit(customer)} className="block truncate font-medium" title={customer.company}>
                     {customer.company}
@@ -223,8 +223,8 @@ export function CustomerTable({ onEdit, onCreate }: CustomerTableProps) {
                     )}
                   </Flex>
                 </div>
-                <Flex justify="flex-end" gap={4} className="mt-3 border-t border-line pt-2">
-                  <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(customer)}>Edit</Button>
+                <Flex justify="flex-end" gap={4} wrap className="mt-3 border-t border-line pe-2 pt-2">
+                  <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(customer)} className="shrink-0">Edit</Button>
                   <RowDeleteButton
                     label={`Delete ${customer.company}`}
                     title={`Delete ${customer.company}?`}
@@ -232,6 +232,7 @@ export function CustomerTable({ onEdit, onCreate }: CustomerTableProps) {
                     okText="Delete customer"
                     cancelText="Keep customer"
                     loading={remove.isPending && remove.variables?.id === customer.id}
+                    className="shrink-0"
                     onConfirm={() => remove.mutateAsync(customer).catch(() => undefined)}
                   />
                 </Flex>

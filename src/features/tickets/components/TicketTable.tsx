@@ -195,9 +195,9 @@ export function TicketTable({ onEdit, onCreate }: TicketTableProps) {
         {isFetching ? (
           <Typography.Text type="secondary" className="block px-4 py-6 text-center">Loading tickets...</Typography.Text>
         ) : data?.items.length ? (
-          <div className="grid gap-2">
+          <div className="grid min-w-0 gap-2">
             {data.items.map((ticket) => (
-              <article key={ticket.id} className="rounded-md border border-line p-3">
+              <article key={ticket.id} className="box-border min-w-0 max-w-full rounded-md border border-line p-3">
                 <div className="flex gap-3">
                   <Checkbox
                     checked={selectedIds.includes(ticket.id)}
@@ -210,7 +210,7 @@ export function TicketTable({ onEdit, onCreate }: TicketTableProps) {
                     }}
                   />
                   <div className="min-w-0 flex-1">
-                    <ActionLink onActivate={() => onEdit(ticket)} className="block truncate font-medium" title={ticket.subject}>
+                    <ActionLink onActivate={() => onEdit(ticket)} className="block whitespace-normal break-words font-medium" title={ticket.subject}>
                       {ticket.subject}
                     </ActionLink>
                     <Typography.Text type="secondary" className="text-[12.5px]">
@@ -223,8 +223,8 @@ export function TicketTable({ onEdit, onCreate }: TicketTableProps) {
                     </Flex>
                   </div>
                 </div>
-                <Flex justify="flex-end" gap={4} className="mt-3 border-t border-line pt-2">
-                  <Button type="text" icon={<EditOutlined />} aria-label={`Edit PS-${ticket.number}`} onClick={() => onEdit(ticket)}>Edit</Button>
+                <Flex justify="flex-end" gap={4} wrap className="mt-3 border-t border-line pe-2 pt-2">
+                  <Button type="text" icon={<EditOutlined />} aria-label={`Edit PS-${ticket.number}`} onClick={() => onEdit(ticket)} className="shrink-0">Edit</Button>
                   <RowDeleteButton
                     label={`Delete PS-${ticket.number}`}
                     title={`Delete PS-${ticket.number}?`}
@@ -232,6 +232,7 @@ export function TicketTable({ onEdit, onCreate }: TicketTableProps) {
                     okText="Delete ticket"
                     cancelText="Keep ticket"
                     loading={remove.isPending && remove.variables?.id === ticket.id}
+                    className="shrink-0"
                     onConfirm={() => remove.mutateAsync(ticket).then(() => dispatch(selectionRemoved([ticket.id]))).catch(() => undefined)}
                   />
                 </Flex>

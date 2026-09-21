@@ -10,6 +10,8 @@ interface RowDeleteButtonProps {
   okText: string
   cancelText: string
   loading?: boolean
+  showText?: boolean
+  className?: string
   onConfirm: () => Promise<unknown> | void
 }
 
@@ -17,7 +19,7 @@ interface RowDeleteButtonProps {
  * Icon button with a confirmation popover. While the confirmation is open the
  * hover tooltip is suppressed: otherwise it sits on top of the popover's own buttons.
  */
-export function RowDeleteButton({ label, title, description, okText, cancelText, loading, onConfirm }: RowDeleteButtonProps) {
+export function RowDeleteButton({ label, title, description, okText, cancelText, loading, showText = false, className, onConfirm }: RowDeleteButtonProps) {
   const [confirming, setConfirming] = useState(false)
   return (
     <Popconfirm
@@ -32,7 +34,9 @@ export function RowDeleteButton({ label, title, description, okText, cancelText,
       onConfirm={onConfirm}
     >
       <Tooltip title="Delete" open={confirming ? false : undefined}>
-        <Button type="text" danger icon={<DeleteOutlined />} aria-label={label} loading={loading} />
+        <Button type="text" danger icon={<DeleteOutlined />} aria-label={label} loading={loading} className={className}>
+          {showText ? 'Delete' : null}
+        </Button>
       </Tooltip>
     </Popconfirm>
   )

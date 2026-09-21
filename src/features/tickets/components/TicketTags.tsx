@@ -45,8 +45,13 @@ export function DueLabel({ ticket }: { ticket: Pick<Ticket, 'status' | 'dueAt'> 
   const text = done ? dayjs(ticket.dueAt).format('D MMM') : overdue ? `Overdue ${dayjs(ticket.dueAt).fromNow(true)}` : dayjs(ticket.dueAt).fromNow()
   return (
     <Tooltip title={formatDateTime(ticket.dueAt)}>
-      <Typography.Text type={overdue ? 'danger' : done ? 'secondary' : undefined} strong={overdue}>
-        {text}
+      <Typography.Text
+        type={overdue ? 'danger' : done ? 'secondary' : undefined}
+        strong={overdue}
+        className="whitespace-nowrap"
+      >
+        {overdue && <span className="sm:hidden">Overdue</span>}
+        <span className={overdue ? 'hidden sm:inline' : undefined}>{text}</span>
       </Typography.Text>
     </Tooltip>
   )

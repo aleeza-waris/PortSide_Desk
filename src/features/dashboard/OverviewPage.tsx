@@ -38,7 +38,7 @@ const STATUS_STROKE: Record<TicketStatus, string> = {
 
 /** One KPI tile. Dividers between tiles, and a second row on tablets, are handled with variants. */
 const TILE = [
-  'flex cursor-pointer flex-col items-start gap-1.5 border-0 border-s border-line bg-transparent px-[22px] py-[18px] text-start text-inherit transition-colors',
+  'flex min-w-0 cursor-pointer flex-col items-start gap-1.5 border-0 border-s border-line bg-transparent px-3 py-4 text-start text-inherit transition-colors sm:px-[22px] sm:py-[18px]',
   'hover:bg-fill first:border-s-0',
   'focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand',
   'max-[991px]:nth-3:border-s-0 max-[991px]:nth-[n+3]:border-t',
@@ -102,12 +102,14 @@ export function OverviewPage() {
     {
       key: 'due',
       title: 'Due',
-      width: 150,
+      fixed: 'left',
+      width: 132,
       render: (_, ticket) => <DueLabel ticket={ticket} />,
     },
     {
       key: 'ticket',
       title: 'Ticket',
+      width: 300,
       render: (_, ticket) => (
         <div className="min-w-0">
           <Typography.Text ellipsis className="block max-w-[380px] font-medium">
@@ -160,7 +162,7 @@ export function OverviewPage() {
                 title={tile.title}
                 value={tile.value}
                 loading={isLoading}
-                classNames={{ content: `text-[30px] font-semibold ${tile.danger ? 'text-[#cf1322]' : ''}` }}
+                classNames={{ content: `text-[26px] font-semibold sm:text-[30px] ${tile.danger ? 'text-[#cf1322]' : ''}` }}
               />
               {tile.suffix}
             </button>
@@ -168,32 +170,69 @@ export function OverviewPage() {
         </div>
       </Card>
 
-      <Flex gap={16} wrap align="flex-start">
+      <Flex gap={12} wrap align="flex-start" className="sm:gap-4">
         <Card
           className="min-w-0 flex-[3_1_560px]"
-          title="Next due"
-          extra={<Typography.Text type="secondary">Overdue first. Click a row to open it in Tickets.</Typography.Text>}
+          title={<span className="text-base sm:text-lg">Next due</span>}
+          extra={<Typography.Text type="secondary" className="hidden sm:inline">Overdue first. Click a row to open it in Tickets.</Typography.Text>}
           classNames={{ body: 'p-0' }}
         >
-          <Table<TicketRow>
-            rowKey="id"
-            size="middle"
-            columns={columns}
-            dataSource={data?.dueNext}
-            loading={isLoading}
-            pagination={false}
-            rowClassName={(ticket) => `cursor-pointer ${PRIORITY_STRIPE[ticket.priority]}`}
-            onRow={(ticket) => ({
-              onClick: () => openTickets({ q: ref(ticket.number) }),
-              onKeyDown: (event) => event.key === 'Enter' && openTickets({ q: ref(ticket.number) }),
-              tabIndex: 0,
-            })}
-            locale={{ emptyText: 'Nothing is waiting on a deadline. Nice.' }}
-          />
+          <div className="hidden md:block">
+            <Table<TicketRow>
+              rowKey="id"
+              size="middle"
+              columns={columns}
+              dataSource={data?.dueNext}
+              loading={isLoading}
+              pagination={false}
+              scroll={{ x: 560 }}
+              rowClassName={(ticket) => `cursor-pointer ${PRIORITY_STRIPE[ticket.priority]}`}
+              onRow={(ticket) => ({
+                onClick: () => openTickets({ q: ref(ticket.number) }),
+                onKeyDown: (event) => event.key === 'Enter' && openTickets({ q: ref(ticket.number) }),
+                tabIndex: 0,
+              })}
+              locale={{ emptyText: 'Nothing is waiting on a deadline. Nice.' }}
+            />
+          </div>
+
+          <div className="md:hidden">
+            {isLoading ? (
+              <Typography.Text type="secondary" className="block px-4 py-6 text-center">
+                Loading deadlines...
+              </Typography.Text>
+            ) : data?.dueNext.length ? (
+              <div className="divide-y divide-line">
+                {data.dueNext.map((ticket) => (
+                  <button
+                    key={ticket.id}
+                    type="button"
+                    className="flex w-full flex-col gap-1 border-0 border-s-3 border-transparent bg-transparent px-4 py-3 text-start transition-colors hover:bg-fill focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand"
+                    style={{ borderInlineStartColor: STATUS_STROKE[ticket.status] }}
+                    onClick={() => openTickets({ q: ref(ticket.number) })}
+                  >
+                    <DueLabel ticket={ticket} />
+                    <Typography.Text strong ellipsis className="block">
+                      {ticket.subject}
+                    </Typography.Text>
+                    <Typography.Text type="secondary" className="text-[12.5px]">
+                      <TicketRef number={ticket.number} />
+                      <span aria-hidden="true"> · </span>
+                      {ticket.customer.company}
+                    </Typography.Text>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <Typography.Text type="secondary" className="block px-4 py-6 text-center">
+                Nothing is waiting on a deadline. Nice.
+              </Typography.Text>
+            )}
+          </div>
         </Card>
 
-        <Card className="min-w-0 flex-[1_1_260px]" title="Queue by status">
-          <Flex vertical gap={18}>
+        <Card className="min-w-0 flex-[1_1_260px]" title={<span className="text-base sm:text-lg">Queue by status</span>}>
+          <Flex vertical gap={14} className="sm:gap-[18px]">
             {TICKET_STATUSES.map((status) => (
               <div key={status}>
                 <Flex justify="space-between">

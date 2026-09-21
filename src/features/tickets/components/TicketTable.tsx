@@ -1,5 +1,5 @@
 import { EditOutlined } from '@ant-design/icons'
-import { Button, Empty, Flex, Table, Tooltip, Typography, type TableColumnsType, type TableProps } from 'antd'
+import { Button, Checkbox, Empty, Flex, Pagination, Table, Tooltip, Typography, type TableColumnsType, type TableProps } from 'antd'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { ActionLink } from '@/shared/components/ActionLink'
 import { QueryError } from '@/shared/components/QueryError'
@@ -162,45 +162,102 @@ export function TicketTable({ onEdit, onCreate }: TicketTableProps) {
   return (
     <>
       {isError && <QueryError title="Could not load tickets" error={error} onRetry={() => void refetch()} />}
-      <Table<TicketRow>
-        rowKey="id"
-        size="middle"
-        columns={columns}
-        dataSource={data?.items}
-        loading={isFetching}
-        scroll={{ x: 'max-content' }}
-        sortDirections={['ascend', 'descend']}
-        showSorterTooltip={false}
-        rowSelection={{
-          selectedRowKeys: selectedIds,
-          preserveSelectedRowKeys: true,
-          onChange: (keys) => dispatch(selectionChanged(keys as string[])),
-        }}
-        pagination={{
-          current: params.page,
-          pageSize: params.pageSize,
-          total: data?.total ?? 0,
-          showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50],
-          showTotal: (total, [from, to]) => `${from}–${to} of ${total} tickets`,
-          responsive: true,
-        }}
-        onChange={handleChange}
-        locale={{
-          emptyText: isFetching ? null : (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={hasFilters ? 'No tickets match these filters.' : 'No tickets yet.'}
-            >
-              {hasFilters ? (
-                <Button onClick={() => dispatch(filtersCleared())}>Clear filters</Button>
-              ) : (
-                <Button type="primary" onClick={onCreate}>New ticket</Button>
-              )}
-            </Empty>
-          ),
-        }}
-      />
+      <div className="hidden md:block">
+        <Table<TicketRow>
+          rowKey="id"
+          size="middle"
+          columns={columns}
+          dataSource={data?.items}
+          loading={isFetching}
+          scroll={{ x: 'max-content' }}
+          sortDirections={['ascend', 'descend']}
+          showSorterTooltip={false}
+          rowSelection={{
+            selectedRowKeys: selectedIds,
+            preserveSelectedRowKeys: true,
+            onChange: (keys) => dispatch(selectionChanged(keys as string[])),
+          }}
+          pagination={{
+            current: params.page,
+            pageSize: params.pageSize,
+            total: data?.total ?? 0,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 20, 50],
+            showTotal: (total, [from, to]) => `${from}–${to} of ${total} tickets`,
+            responsive: true,
+          }}
+          onChange={handleChange}
+          locale={{ emptyText: isFetching ? null : <TicketEmptyState hasFilters={hasFilters} onCreate={onCreate} onClear={() => dispatch(filtersCleared())} /> }}
+        />
+      </div>
+
+      <div className="md:hidden">
+        {isFetching ? (
+          <Typography.Text type="secondary" className="block px-4 py-6 text-center">Loading tickets...</Typography.Text>
+        ) : data?.items.length ? (
+          <div className="grid gap-2">
+            {data.items.map((ticket) => (
+              <article key={ticket.id} className="rounded-md border border-line p-3">
+                <div className="flex gap-3">
+                  <Checkbox
+                    checked={selectedIds.includes(ticket.id)}
+                    aria-label={`Select ${ticket.number}`}
+                    onChange={(event) => {
+                      const nextIds = event.target.checked
+                        ? [...selectedIds, ticket.id]
+                        : selectedIds.filter((id) => id !== ticket.id)
+                      dispatch(selectionChanged(nextIds))
+                    }}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <ActionLink onActivate={() => onEdit(ticket)} className="block truncate font-medium" title={ticket.subject}>
+                      {ticket.subject}
+                    </ActionLink>
+                    <Typography.Text type="secondary" className="text-[12.5px]">
+                      <TicketRef number={ticket.number} /> <span aria-hidden>·</span> {ticket.customer.company}
+                    </Typography.Text>
+                    <Flex gap={6} wrap className="mt-2">
+                      <StatusTag status={ticket.status} />
+                      <PriorityTag priority={ticket.priority} />
+                      <DueLabel ticket={ticket} />
+                    </Flex>
+                  </div>
+                </div>
+                <Flex justify="flex-end" gap={4} className="mt-3 border-t border-line pt-2">
+                  <Button type="text" icon={<EditOutlined />} aria-label={`Edit PS-${ticket.number}`} onClick={() => onEdit(ticket)}>Edit</Button>
+                  <RowDeleteButton
+                    label={`Delete PS-${ticket.number}`}
+                    title={`Delete PS-${ticket.number}?`}
+                    description="The ticket is removed for everyone. This cannot be undone."
+                    okText="Delete ticket"
+                    cancelText="Keep ticket"
+                    loading={remove.isPending && remove.variables?.id === ticket.id}
+                    onConfirm={() => remove.mutateAsync(ticket).then(() => dispatch(selectionRemoved([ticket.id]))).catch(() => undefined)}
+                  />
+                </Flex>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <TicketEmptyState hasFilters={hasFilters} onCreate={onCreate} onClear={() => dispatch(filtersCleared())} />
+        )}
+        <Pagination
+          className="mt-4 text-center"
+          current={params.page}
+          pageSize={params.pageSize}
+          total={data?.total ?? 0}
+          showSizeChanger={false}
+          onChange={(page, pageSize) => dispatch(tableChanged({ page, pageSize, sortField: params.sortField, sortOrder: params.sortOrder }))}
+        />
+      </div>
     </>
+  )
+}
+
+function TicketEmptyState({ hasFilters, onCreate, onClear }: { hasFilters: boolean; onCreate: () => void; onClear: () => void }) {
+  return (
+    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={hasFilters ? 'No tickets match these filters.' : 'No tickets yet.'}>
+      {hasFilters ? <Button onClick={onClear}>Clear filters</Button> : <Button type="primary" onClick={onCreate}>New ticket</Button>}
+    </Empty>
   )
 }

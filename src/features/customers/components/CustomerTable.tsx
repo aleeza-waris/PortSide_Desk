@@ -1,5 +1,5 @@
 import { EditOutlined } from '@ant-design/icons'
-import { Button, Empty, Flex, Table, Tooltip, Typography, type TableColumnsType, type TableProps } from 'antd'
+import { Button, Empty, Flex, Pagination, Table, Tooltip, Typography, type TableColumnsType, type TableProps } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/app/hooks'
 import { filtersReplaced } from '@/features/tickets/ticketsSlice'
@@ -173,37 +173,91 @@ export function CustomerTable({ onEdit, onCreate }: CustomerTableProps) {
   return (
     <>
       {isError && <QueryError title="Could not load customers" error={error} onRetry={() => void refetch()} />}
-      <Table<CustomerRow>
-        rowKey="id"
-        size="middle"
-        columns={columns}
-        dataSource={data?.items}
-        loading={isFetching}
-        scroll={{ x: 'max-content' }}
-        sortDirections={['ascend', 'descend']}
-        showSorterTooltip={false}
-        pagination={{
-          current: params.page,
-          pageSize: params.pageSize,
-          total: data?.total ?? 0,
-          showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50],
-          showTotal: (total, [from, to]) => `${from}–${to} of ${total} customers`,
-          responsive: true,
-        }}
-        onChange={handleChange}
-        locale={{
-          emptyText: isFetching ? null : (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={hasFilters ? 'No customers match these filters.' : 'No customers yet.'}>
-              {hasFilters ? (
-                <Button onClick={() => dispatch(filtersCleared())}>Clear filters</Button>
-              ) : (
-                <Button type="primary" onClick={onCreate}>New customer</Button>
-              )}
-            </Empty>
-          ),
-        }}
-      />
+      <div className="hidden md:block">
+        <Table<CustomerRow>
+          rowKey="id"
+          size="middle"
+          columns={columns}
+          dataSource={data?.items}
+          loading={isFetching}
+          scroll={{ x: 'max-content' }}
+          sortDirections={['ascend', 'descend']}
+          showSorterTooltip={false}
+          pagination={{
+            current: params.page,
+            pageSize: params.pageSize,
+            total: data?.total ?? 0,
+            showSizeChanger: true,
+            pageSizeOptions: [10, 20, 50],
+            showTotal: (total, [from, to]) => `${from}–${to} of ${total} customers`,
+            responsive: true,
+          }}
+          onChange={handleChange}
+          locale={{ emptyText: isFetching ? null : <CustomerEmptyState hasFilters={hasFilters} onCreate={onCreate} onClear={() => dispatch(filtersCleared())} /> }}
+        />
+      </div>
+
+      <div className="md:hidden">
+        {isFetching ? (
+          <Typography.Text type="secondary" className="block px-4 py-6 text-center">Loading customers...</Typography.Text>
+        ) : data?.items.length ? (
+          <div className="grid gap-2">
+            {data.items.map((customer) => (
+              <article key={customer.id} className="rounded-md border border-line p-3">
+                <div className="min-w-0">
+                  <ActionLink onActivate={() => onEdit(customer)} className="block truncate font-medium" title={customer.company}>
+                    {customer.company}
+                  </ActionLink>
+                  <Typography.Text type="secondary" className="text-[12.5px]">
+                    {customer.name} <span aria-hidden>·</span> {customer.country}
+                  </Typography.Text>
+                  <Flex gap={6} wrap align="center" className="mt-2">
+                    <PlanTag plan={customer.plan} />
+                    <CustomerStatusBadge status={customer.status} />
+                    {customer.openTickets > 0 ? (
+                      <Button type="link" size="small" className="ms-auto p-0" onClick={() => viewTickets(customer)}>
+                        {customer.openTickets} open tickets
+                      </Button>
+                    ) : (
+                      <Typography.Text type="secondary" className="ms-auto text-[12.5px]">0 open tickets</Typography.Text>
+                    )}
+                  </Flex>
+                </div>
+                <Flex justify="flex-end" gap={4} className="mt-3 border-t border-line pt-2">
+                  <Button type="text" icon={<EditOutlined />} onClick={() => onEdit(customer)}>Edit</Button>
+                  <RowDeleteButton
+                    label={`Delete ${customer.company}`}
+                    title={`Delete ${customer.company}?`}
+                    description="Their finished tickets are deleted too. Customers with open tickets cannot be deleted."
+                    okText="Delete customer"
+                    cancelText="Keep customer"
+                    loading={remove.isPending && remove.variables?.id === customer.id}
+                    onConfirm={() => remove.mutateAsync(customer).catch(() => undefined)}
+                  />
+                </Flex>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <CustomerEmptyState hasFilters={hasFilters} onCreate={onCreate} onClear={() => dispatch(filtersCleared())} />
+        )}
+        <Pagination
+          className="mt-4 text-center"
+          current={params.page}
+          pageSize={params.pageSize}
+          total={data?.total ?? 0}
+          showSizeChanger={false}
+          onChange={(page, pageSize) => dispatch(tableChanged({ ...params, page, pageSize }))}
+        />
+      </div>
     </>
+  )
+}
+
+function CustomerEmptyState({ hasFilters, onCreate, onClear }: { hasFilters: boolean; onCreate: () => void; onClear: () => void }) {
+  return (
+    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={hasFilters ? 'No customers match these filters.' : 'No customers yet.'}>
+      {hasFilters ? <Button onClick={onClear}>Clear filters</Button> : <Button type="primary" onClick={onCreate}>New customer</Button>}
+    </Empty>
   )
 }

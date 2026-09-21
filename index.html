@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Portside Desk: support and customer admin for a freight forwarder (demo, runs on a mock API)." />
+    <title>Portside Desk</title>
+    <!-- Must come before any other stylesheet: fixes the cascade layer order (see src/app/tailwind.css). -->
+    <style>
+      @layer theme, base, antd, components, utilities;
+    </style>
+  </head>
+  <body class="font-sans antialiased tabular-nums">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

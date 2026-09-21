@@ -1,0 +1,41 @@
+/*
+ * The one stylesheet. Everything else is Tailwind utility classes in the components.
+ *
+ * Layer order matters: antd's styles sit between Tailwind's base and its utilities, so
+ * Tailwind's reset never overrides antd, and a utility class always overrides antd's default.
+ * (index.html declares the same order first, so it holds whichever stylesheet loads first.)
+ */
+@layer theme, base, antd, components, utilities;
+
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Brand: deep harbour blue for the sider, buoy yellow used once to mark the current page. */
+  --color-harbour: #0f2a3d;
+  --color-buoy: #f2b705;
+
+  --animate-grow: grow 1.2s ease-out forwards;
+  @keyframes grow {
+    from {
+      transform: scaleX(0.05);
+    }
+    to {
+      transform: scaleX(0.9);
+    }
+  }
+}
+
+/* Aliases for antd's live theme tokens, so utilities follow light/dark mode automatically. */
+@theme inline {
+  --color-ink: var(--ant-color-text);
+  --color-muted: var(--ant-color-text-secondary);
+  --color-surface: var(--ant-color-bg-container);
+  --color-line: var(--ant-color-border-secondary);
+  --color-fill: var(--ant-color-fill-quaternary);
+  --color-brand: var(--ant-color-primary);
+  --color-brand-bg: var(--ant-color-primary-bg);
+  --color-brand-line: var(--ant-color-primary-border);
+}

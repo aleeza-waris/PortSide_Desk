@@ -101,14 +101,90 @@ export function TeamPage() {
       <PageHeader title="Team" description="Who is on the desk, and how much each person is carrying." />
       {isError && <QueryError title="Could not load the team" error={error} onRetry={() => void refetch()} />}
       <Card classNames={{ body: 'p-0' }}>
-        <Table<AgentRow>
-          rowKey="id"
-          columns={columns}
-          dataSource={data}
-          loading={isLoading}
-          pagination={false}
-          scroll={{ x: 'max-content' }}
-        />
+        <div className="hidden md:block">
+          <Table<AgentRow>
+            rowKey="id"
+            columns={columns}
+            dataSource={data}
+            loading={isLoading}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+          />
+        </div>
+
+        <div className="md:hidden">
+          {isLoading ? (
+            <Typography.Text type="secondary" className="block px-4 py-6 text-center">
+              Loading team...
+            </Typography.Text>
+          ) : data?.length ? (
+            <div className="grid min-w-0 gap-2 p-3">
+              {data.map((agent) => (
+                <article key={agent.id} className="box-border min-w-0 max-w-full rounded-md border border-line p-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <UserAvatar name={agent.name} color={agent.avatarColor} size={36} />
+                    <div className="min-w-0 flex-1">
+                      <Typography.Text strong className="block whitespace-normal break-words [overflow-wrap:anywhere]">
+                        {agent.name}
+                      </Typography.Text>
+                      <Typography.Text type="secondary" className="block break-words text-[12.5px]">
+                        {agent.email}
+                      </Typography.Text>
+                    </div>
+                    <Switch
+                      checked={agent.available}
+                      loading={setAvailability.isPending && setAvailability.variables?.agent.id === agent.id}
+                      onChange={(available) => setAvailability.mutate({ agent, available })}
+                      aria-label={`${agent.name} is available`}
+                    />
+                  </div>
+
+                  <div className="mt-3 grid gap-3 border-t border-line pt-3">
+                    <Flex justify="space-between" align="center" gap={12}>
+                      <Typography.Text type="secondary">Role</Typography.Text>
+                      <Tag variant="filled" color={agent.role === 'admin' ? 'purple' : 'default'}>
+                        {agent.role === 'admin' ? 'Admin' : 'Agent'}
+                      </Tag>
+                    </Flex>
+                    <div>
+                      <Flex justify="space-between" align="center" gap={12}>
+                        <Typography.Text type="secondary">Workload</Typography.Text>
+                        <Typography.Text>{agent.openTickets} open tickets</Typography.Text>
+                      </Flex>
+                      <Progress
+                        percent={Math.min(100, Math.round((agent.openTickets / CAPACITY) * 100))}
+                        showInfo={false}
+                        size="small"
+                        status={agent.openTickets >= CAPACITY ? 'exception' : 'normal'}
+                        className="m-0"
+                        aria-label={`${agent.openTickets} of ${CAPACITY} open tickets`}
+                      />
+                    </div>
+                    <Flex justify="space-between" align="center" gap={12}>
+                      <Typography.Text type="secondary">Resolved this week</Typography.Text>
+                      <Typography.Text>{agent.resolvedThisWeek}</Typography.Text>
+                    </Flex>
+                    <Flex justify="space-between" align="center" gap={12}>
+                      <Typography.Text type="secondary">Customer rating</Typography.Text>
+                      {agent.csat > 0 ? (
+                        <Flex align="center" gap={6}>
+                          <Rate disabled allowHalf value={Math.round(agent.csat * 2) / 2} className="text-sm" />
+                          <Typography.Text type="secondary">{agent.csat.toFixed(1)}</Typography.Text>
+                        </Flex>
+                      ) : (
+                        <Typography.Text type="secondary">No ratings yet</Typography.Text>
+                      )}
+                    </Flex>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <Typography.Text type="secondary" className="block px-4 py-6 text-center">
+              No team members found.
+            </Typography.Text>
+          )}
+        </div>
       </Card>
     </>
   )

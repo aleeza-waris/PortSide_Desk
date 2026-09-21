@@ -50,8 +50,7 @@ export function DueLabel({ ticket }: { ticket: Pick<Ticket, 'status' | 'dueAt'> 
         strong={overdue}
         className="whitespace-nowrap"
       >
-        {overdue && <span className="sm:hidden">Overdue</span>}
-        <span className={overdue ? 'hidden sm:inline' : undefined}>{text}</span>
+        {text}
       </Typography.Text>
     </Tooltip>
   )

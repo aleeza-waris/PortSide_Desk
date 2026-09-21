@@ -212,10 +212,10 @@ export function OverviewPage() {
                     onClick={() => openTickets({ q: ref(ticket.number) })}
                   >
                     <DueLabel ticket={ticket} />
-                    <Typography.Text strong className="block whitespace-normal break-words">
+                    <Typography.Text strong className="block whitespace-normal break-words [overflow-wrap:anywhere]">
                       {ticket.subject}
                     </Typography.Text>
-                    <Typography.Text type="secondary" className="block whitespace-normal break-words text-[12.5px]">
+                    <Typography.Text type="secondary" className="block whitespace-normal break-words [overflow-wrap:anywhere] text-[12.5px]">
                       <TicketRef number={ticket.number} />
                       <span aria-hidden="true"> · </span>
                       {ticket.customer.company}
